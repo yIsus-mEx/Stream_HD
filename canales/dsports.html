@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Player</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.5/shaka-player.compiled.js"></script>
+    
+    <style>
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            width: 100%; 
+            height: 100%; 
+            overflow: hidden; 
+            background-color: #000;
+            /* Oculta la flecha del ratón en TV Boxes si se llega a mover */
+            cursor: none; 
+        }
+        video { 
+            width: 100%; 
+            height: 100%; 
+            background-color: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <video id="video" controls autoplay playsinline></video>
+
+    <script>
+        async function initPlayer() {
+            // Aseguramos que la librería de Shaka esté lista
+            shaka.poly填 = shaka.polyfill || {}; 
+            if (typeof shaka.polyfill.installAll === 'function') {
+                shaka.polyfill.installAll();
+            }
+
+            const video = document.getElementById('video');
+            const player = new shaka.Player(video);
+
+            // Configuración de errores para ver qué pasa si algo falla
+            player.addEventListener('error', (event) => {
+                console.error('Error de Shaka Player:', event.detail);
+            });
+
+            // 🌟 TU ENLACE MPD REAL AQUÍ
+            const manifestUri = 'https://servidor-origen.com/live/dsports/manifest.mpd';
+
+            // 🔑 CONFIGURACIÓN DRM CLEARKEY (Descomenta si tu MPD la usa)
+            /*
+            player.configure({
+                drm: {
+                    clearKeys: {
+                        'id_de_la_llave_hex': 'valor_de_la_llave_hex'
+                    }
+                }
+            });
+            */
+
+            try {
+                await player.load(manifestUri);
+                console.log('Stream cargado exitosamente.');
+                
+                // Intento de forzar la reproducción si el navegador bloquea el autoplay
+                video.play().catch(() => {
+                    // Si el sistema bloquea el audio al inicio, lo muteamos un milisegundo y reproducimos
+                    video.muted = true;
+                    video.play();
+                    video.muted = false;
+                });
+
+            } catch (e) {
+                console.error('Error al cargar el manifiesto:', e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (shaka.Player.isBrowserSupported()) {
+                initPlayer();
+            } else {
+                alert('Este dispositivo/reproductor no soporta streams MPD.');
+            }
+        });
+    </script>
+</body>
+</html>
