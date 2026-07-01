@@ -4,25 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stream Player</title>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.5/shaka-player.compiled.js"></script>
-    
     <style>
-        body, html { 
-            margin: 0; 
-            padding: 0; 
-            width: 100%; 
-            height: 100%; 
-            overflow: hidden; 
-            background-color: #000;
-            /* Oculta la flecha del ratón en TV Boxes si se llega a mover */
-            cursor: none; 
-        }
-        video { 
-            width: 100%; 
-            height: 100%; 
-            background-color: #000;
-        }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #000; cursor: none; }
+        video { width: 100%; height: 100%; background-color: #000; }
     </style>
 </head>
 <body>
@@ -31,58 +16,50 @@
 
     <script>
         async function initPlayer() {
-            // Aseguramos que la librería de Shaka esté lista
-            shaka.poly填 = shaka.polyfill || {}; 
-            if (typeof shaka.polyfill.installAll === 'function') {
-                shaka.polyfill.installAll();
+            // Instalar polyfills para asegurar soporte en TV Boxes viejas
+            shaka.polyfill.installAll();
+
+            if (!shaka.Player.isBrowserSupported()) {
+                console.error('Navegador no soportado');
+                return;
             }
 
             const video = document.getElementById('video');
             const player = new shaka.Player(video);
 
-            // Configuración de errores para ver qué pasa si algo falla
-            player.addEventListener('error', (event) => {
-                console.error('Error de Shaka Player:', event.detail);
-            });
-
-            // 🌟 TU ENLACE MPD REAL AQUÍ
+            // 🌟 1. TU ENLACE MPD REAL AQUÍ
             const manifestUri = 'https://otte.live.fly.ww.aiv-cdn.net/gru-nitro/live/clients/dash/enc/x0srg3jjpz/out/v1/f779c49314394d61886d63f58d9d52e4/cenc.mpd';
 
-            // 🔑 CONFIGURACIÓN DRM CLEARKEY (Descomenta si tu MPD la usa)
-            /*
+            // 🔑 2. CONFIGURACIÓN DE LLAVES DRM (Fíjate bien en la estructura)
             player.configure({
                 drm: {
                     clearKeys: {
-                        '4f4c3a9912ea752e88f4497864a1bc8b':'278128004fe8c6ffb2cd2a0c154a241a'
+                        '4f4c3a9912ea752e88f4497864a1bc8b': '278128004fe8c6ffb2cd2a0c154a241a'
                     }
+                },
+                // Forzar reintentos si la red de la TV Box es inestable
+                streaming: {
+                    retryParameters: { maxAttempts: 5 }
                 }
             });
-            */
 
             try {
-                await player.load(manifestUri);
-                console.log('Stream cargado exitosamente.');
+                // Forzamos al reproductor a entender que es un MPEG-DASH (MPD)
+                await player.load(manifestUri, null, 'application/dash+xml');
+                console.log('¡Stream cargado con éxito!');
                 
-                // Intento de forzar la reproducción si el navegador bloquea el autoplay
+                // Forzar reproducción automática
                 video.play().catch(() => {
-                    // Si el sistema bloquea el audio al inicio, lo muteamos un milisegundo y reproducimos
                     video.muted = true;
                     video.play();
                     video.muted = false;
                 });
-
             } catch (e) {
-                console.error('Error al cargar el manifiesto:', e);
+                console.error('Error cargando el manifiesto:', e);
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            if (shaka.Player.isBrowserSupported()) {
-                initPlayer();
-            } else {
-                alert('Este dispositivo/reproductor no soporta streams MPD.');
-            }
-        });
+        document.addEventListener('DOMContentLoaded', initPlayer);
     </script>
 </body>
 </html>
