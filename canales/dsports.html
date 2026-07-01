@@ -15,8 +15,8 @@
     <video id="video" controls autoplay playsinline></video>
 
     <script>
-        // Usamos un proxy alternativo que procesa correctamente los flujos de video
-        const manifestUri = 'https://corsproxy.io/?' + encodeURIComponent('https://otte.live.fly.ww.aiv-cdn.net/gru-nitro/live/clients/dash/enc/x0srg3jjpz/out/v1/f779c49314394d61886d63f58d9d52e4/cenc.mpd');
+        // Tu enlace original que confirmas que funciona perfectamente
+        const manifestUri = 'https://otte.live.fly.ww.aiv-cdn.net/gru-nitro/live/clients/dash/enc/x0srg3jjpz/out/v1/f779c49314394d61886d63f58d9d52e4/cenc.mpd';
 
         async function initApp() {
             shaka.polyfill.installAll();
@@ -25,6 +25,7 @@
             const video = document.getElementById('video');
             const player = new shaka.Player(video);
 
+            // Configuramos las llaves ClearKey nativas
             player.configure({
                 drm: {
                     clearKeys: {
@@ -33,9 +34,19 @@
                 }
             });
 
+            // TRUCO PHP / EXTENSIÓN: Modificamos la petición directamente en el cliente
+            player.getNetworkingEngine().registerRequestFilter(function(type, request) {
+                // Solo modificamos cuando Shaka Player vaya a pedir el manifiesto o los segmentos de Amazon
+                if (request.uris[0].includes('aiv-cdn.net')) {
+                    // Forzamos las cabeceras exactas que la web autorizada envía
+                    request.headers['Origin'] = 'https://latamplay1.click';
+                    request.headers['Referer'] = 'https://latamplay1.click/';
+                }
+            });
+
             try {
                 await player.load(manifestUri);
-                console.log('¡Canal cargado con éxito!');
+                console.log('¡Canal cargado con éxito localmente!');
             } catch (e) {
                 console.error('Error al cargar el canal:', e);
             }
