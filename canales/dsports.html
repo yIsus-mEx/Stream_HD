@@ -43,6 +43,15 @@
                 }
             });
 
+            // 🛡️ FILTRO AVANZADO PARA ENGAÑAR AL SERVIDOR Y EVITAR EL ERROR 400
+            player.getNetworkingEngine().registerRequestFilter((type, request) => {
+                // Eliminamos la cabecera 'Origin' para que no sepa que vienes de Vercel
+                delete request.headers['Origin'];
+                
+                // Forzamos un User-Agent de Android para simular un reproductor nativo
+                request.headers['User-Agent'] = 'Dalvik/2.1.0 (Linux; U; Android 10; SM-A505F Build/QP1A.190711.020)';
+            });
+
             try {
                 // Forzamos al reproductor a interpretar el tipo de contenido como DASH
                 await player.load(manifestUri, null, 'application/dash+xml');
