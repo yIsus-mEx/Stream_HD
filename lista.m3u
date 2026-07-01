@@ -1,0 +1,4 @@
+#EXTM3U
+
+#EXTINF:-1 tvg-id="DSports" tvg-name="DSports" tvg-logo="https://raw.githubusercontent.com/ylsus-mEx/Stream_HD/main/logos/dsports.png",DSports HD
+https://stream-hd.vercel.app/canales/dsports
