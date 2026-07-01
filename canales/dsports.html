@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stream Player</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.5/shaka-player.compiled.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/shaka-player@4.14.1/dist/shaka-player.compiled.min.js"></script>
+    
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #000; cursor: none; }
         video { width: 100%; height: 100%; background-color: #000; }
@@ -16,46 +18,42 @@
 
     <script>
         async function initPlayer() {
-            // Instalar polyfills para asegurar soporte en TV Boxes viejas
+            // Inicializar polyfills obligatorios
             shaka.polyfill.installAll();
 
             if (!shaka.Player.isBrowserSupported()) {
-                console.error('Navegador no soportado');
                 return;
             }
 
             const video = document.getElementById('video');
             const player = new shaka.Player(video);
 
-            // 🌟 1. TU ENLACE MPD REAL AQUÍ
-            const manifestUri = 'https://otte.live.fly.ww.aiv-cdn.net/gru-nitro/live/clients/dash/enc/x0srg3jjpz/out/v1/f779c49314394d61886d63f58d9d52e4/cenc.mpd';
+            // Tu URL real y corregida
+            const manifestUri = 'https://otte.live.fly.ww.aiv-cdn.net/gru-nitro/live/clients/dash/enc/x0srg3jjpz/out/v1/f779c49314394d61886d63f58d9d52c4/cenc.mpd';
 
-            // 🔑 2. CONFIGURACIÓN DE LLAVES DRM (Fíjate bien en la estructura)
+            // Configuración DRM limpia compatible con tu versión 4.14.1
             player.configure({
                 drm: {
                     clearKeys: {
-                        '4f4c3a9912ea752e88f4497864a1bc8b': '278128004fe8c6ffb2cd2a0c154a241a'
+                        '4f4c3a9912ea752c8bf4497b64a1bc0b': '278128004fc8c6ffb2cd2a0c154a241a'
                     }
                 },
-                // Forzar reintentos si la red de la TV Box es inestable
                 streaming: {
                     retryParameters: { maxAttempts: 5 }
                 }
             });
 
             try {
-                // Forzamos al reproductor a entender que es un MPEG-DASH (MPD)
+                // Forzamos al reproductor a interpretar el tipo de contenido como DASH
                 await player.load(manifestUri, null, 'application/dash+xml');
-                console.log('¡Stream cargado con éxito!');
                 
-                // Forzar reproducción automática
                 video.play().catch(() => {
                     video.muted = true;
                     video.play();
                     video.muted = false;
                 });
             } catch (e) {
-                console.error('Error cargando el manifiesto:', e);
+                console.error('Error cargando el stream:', e);
             }
         }
 
