@@ -15,22 +15,16 @@
     <video id="video" controls autoplay playsinline></video>
 
     <script>
-        // URL directa de Amazon limpia (sin el proxy de stark9)
-        const manifestUri = 'https://otte.live.fly.ww.aiv-cdn.net/gru-nitro/live/clients/dash/enc/x0srg3jjpz/out/v1/f779c49314394d61886d63f58d9d52e4/cenc.mpd';
+        // Usamos un proxy alternativo que procesa correctamente los flujos de video
+        const manifestUri = 'https://corsproxy.io/?' + encodeURIComponent('https://otte.live.fly.ww.aiv-cdn.net/gru-nitro/live/clients/dash/enc/x0srg3jjpz/out/v1/f779c49314394d61886d63f58d9d52e4/cenc.mpd');
 
         async function initApp() {
-            // Instalar los polyfills necesarios para compatibilidad de navegadores
             shaka.polyfill.installAll();
-            
-            if (!shaka.Player.isBrowserSupported()) {
-                console.error('Navegador no compatible con Shaka Player');
-                return;
-            }
+            if (!shaka.Player.isBrowserSupported()) return;
 
             const video = document.getElementById('video');
             const player = new shaka.Player(video);
 
-            // Configuración directa de las llaves ClearKey en formato mapeado
             player.configure({
                 drm: {
                     clearKeys: {
@@ -39,19 +33,12 @@
                 }
             });
 
-            // Escuchar errores internos del reproductor
-            player.addEventListener('error', onPlayerError);
-
             try {
                 await player.load(manifestUri);
                 console.log('¡Canal cargado con éxito!');
             } catch (e) {
                 console.error('Error al cargar el canal:', e);
             }
-        }
-
-        function onPlayerError(event) {
-            console.error('Error de Shaka Player:', event.detail);
         }
 
         document.addEventListener('DOMContentLoaded', initApp);
